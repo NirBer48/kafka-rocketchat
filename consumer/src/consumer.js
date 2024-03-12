@@ -8,18 +8,18 @@ import {
   handleRoomName,
 } from "./handlers.js";
 
-api.login({ username: config.USER, password: config.PASS });
+api.login({ username: config.rocketchat.user, password: config.rocketchat.pass });
 
 const kafka = new Kafka({
-  clientId: config.CLIENT_ID,
-  brokers: config.BROKERS,
+  clientId: config.kafka.clientId,
+  brokers: config.kafka.brokers,
 });
 
-const consumer = kafka.consumer({ groupId: config.GROUP_ID });
+const consumer = kafka.consumer({ groupId: config.kafka.groupId });
 
 const runConsumer = async () => {
   await consumer.connect();
-  await consumer.subscribe({ topics: config.TOPICS, fromBeginning: false });
+  await consumer.subscribe({ topics: config.kafka.topics, fromBeginning: false });
 
   await consumer.run({
     eachMessage: async ({ topic, partition, message }) => {

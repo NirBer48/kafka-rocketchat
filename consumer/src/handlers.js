@@ -18,7 +18,7 @@ const handleMessageEdit = async (jsonMessage) => {
         jsonMessage.updateDescription.updatedFields.editedBy.username +
         " edited your text in room " +
         fullroom.room.fname,
-      alias: config.MESSAGE_ALIAS,
+      alias: config.messages.messageAlias,
     });
   }
 };
@@ -30,8 +30,8 @@ const handleNewUser = async (jsonMessage) => {
 
   await api.post("chat.postMessage", {
     channel: "@" + fulluser.user.username,
-    text: config.WELCOME_MESSAGE_TEXT,
-    alias: config.WELCOME_MESSAGE_ALIAS,
+    text: config.messages.welcomeMessageText,
+    alias: config.messages.messageAlias,
   });
 };
 
@@ -62,7 +62,7 @@ const handleMessageSent = (jsonMessage) => {
 
   if (
     userMessage === "log popular word" &&
-    jsonMessage.fullDocument.u._id === config.ADMIN_ID
+    jsonMessage.fullDocument.u._id === config.rocketchat.adminId
   ) {
     console.log({
       mostPopularWord: getMostPopularWord(),
