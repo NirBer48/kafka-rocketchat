@@ -188,13 +188,3 @@ services:
         done; (exit $$s)"
     depends_on:
       - mongo
-
-  kafka-consumer:
-    build:
-      context: ./consumer
-      dockerfile: consumer.Dockerfile
-    depends_on:
-      - broker
-    environment:
-      - KAFKA_BROKER_URL=broker:9092
-      - KAFKA_GROUP_ID=rocketchat-consumer
