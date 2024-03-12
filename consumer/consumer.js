@@ -1,10 +1,10 @@
 const { Kafka } = require("kafkajs");
-const axios = require("axios");
 const { api } = require("@rocket.chat/sdk");
 
-const HOST = "http://localhost:3000/";
 const USER = "nir";
 const PASS = "nir";
+const ADMIN_ID = "Pa9JjdKjMNKky3ETc";
+
 
 api.login({ username: USER, password: PASS });
 
@@ -37,35 +37,14 @@ const runConsumer = async () => {
         topic === "rocketchat.rocketchat_message" &&
         jsonMessage.operationType === "insert"
       ) {
-        const userMessage = jsonMessage.fullDocument.msg;
-
-        for (const word of userMessage.split(" ")) {
-          wordsCount.has(word)
-            ? wordsCount.set(word, wordsCount.get(word) + 1)
-            : wordsCount.set(word, 1);
-        }
-
-        if (
-          userMessage === "log popular word" &&
-          jsonMessage.fullDocument.u._id === "Pa9JjdKjMNKky3ETc"
-        ) {
-          console.log({
-            mostPopularWord: Array.from(wordsCount.entries()).reduce((a, b) =>
-              a[1] < b[1] ? b : a
-            )[0],
-          });
-        } else {
-          console.log({
-            value: userMessage,
-          });
-        }
+        handleMessageSent(jsonMessage);
       } else if (
         topic === "rocketchat.rocketchat_room" &&
         (jsonMessage.operationType === "insert" ||
           (jsonMessage.operationType === "update" &&
             "fname" in jsonMessage.updateDescription.updatedFields))
       ) {
-        await handleRoomName(jsonMessage)
+        await handleRoomName(jsonMessage);
       } else if (
         topic === "rocketchat.users" &&
         jsonMessage.operationType === "insert"
@@ -115,7 +94,7 @@ const handleNewUser = async (jsonMessage) => {
   });
 };
 
-const handleRoomName = async () => {
+const handleRoomName = async (jsonMessage) => {
   const roomName =
     jsonMessage.operationType === "update"
       ? jsonMessage.updateDescription.updatedFields.fname
@@ -127,6 +106,31 @@ const handleRoomName = async () => {
     await api.post("rooms.saveRoomSettings", {
       rid: roomId,
       roomName: newRoomName,
+    });
+  }
+};
+
+const handleMessageSent = (jsonMessage) => {
+  const userMessage = jsonMessage.fullDocument.msg;
+
+  for (const word of userMessage.split(" ")) {
+    wordsCount.has(word)
+      ? wordsCount.set(word, wordsCount.get(word) + 1)
+      : wordsCount.set(word, 1);
+  }
+
+  if (
+    userMessage === "log popular word" &&
+    jsonMessage.fullDocument.u._id === ADMIN_ID
+  ) {
+    console.log({
+      mostPopularWord: Array.from(wordsCount.entries()).reduce((a, b) =>
+        a[1] < b[1] ? b : a
+      )[0],
+    });
+  } else {
+    console.log({
+      value: userMessage,
     });
   }
 };
