@@ -1,14 +1,12 @@
 import { Kafka } from "kafkajs";
-import { api } from "@rocket.chat/sdk";
 import config from "./config.js";
 import {
   handleMessageEdit,
   handleMessageSent,
   handleNewUser,
   handleRoomName,
+  tryCatchWrapper,
 } from "./handlers.js";
-
-api.login({ username: config.rocketchat.user, password: config.rocketchat.pass });
 
 const kafka = new Kafka({
   clientId: config.kafka.clientId,
@@ -22,36 +20,36 @@ const runConsumer = async () => {
   await consumer.subscribe({ topics: config.kafka.topics, fromBeginning: false });
 
   await consumer.run({
-    eachMessage: async ({ topic, partition, message }) => {
+    eachMessage: async ({ topic, _partition, message }) => {
       const jsonMessage = JSON.parse(
         JSON.parse(JSON.stringify(message.value.toString().substring(7)))
       );
 
       switch (topic) {
-        case "rocketchat.rocketchat_message":
+        case config.rocketchat.dbName + ".rocketchat_message":
           if (jsonMessage.operationType === "insert") {
-            handleMessageSent(jsonMessage);
+            tryCatchWrapper(handleMessageSent, jsonMessage);
           } else if (
             jsonMessage.operationType === "update" &&
             jsonMessage.updateDescription.updatedFields.editedBy
           ) {
-            await handleMessageEdit(jsonMessage);
+            tryCatchWrapper(handleMessageEdit, jsonMessage);
           }
 
           break;
-        case "rocketchat.users":
+        case config.rocketchat.dbName + ".users":
           if (jsonMessage.operationType === "insert") {
-            await handleNewUser(jsonMessage);
+            tryCatchWrapper(handleNewUser, jsonMessage);
           }
 
           break;
-        case "rocketchat.rocketchat_room":
+        case config.rocketchat.dbName + ".rocketchat_room":
           if (
             jsonMessage.operationType === "insert" ||
             (jsonMessage.operationType === "update" &&
               "fname" in jsonMessage.updateDescription.updatedFields)
           ) {
-            await handleRoomName(jsonMessage);
+            tryCatchWrapper(handleRoomName, jsonMessage);
           }
 
           break;

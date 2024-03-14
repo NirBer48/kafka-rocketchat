@@ -5,6 +5,7 @@ export default {
     user: env.get("USER").default("nir").asString(),
     pass: env.get("PASSWORD").default("nir").asString(),
     adminId: env.get("ADMIN_ID").default("Pa9JjdKjMNKky3ETc").asString(),
+    dbName: env.get("DB_NAME").default("rocketchat").asString(),
   },
   kafka: {
     topics: env

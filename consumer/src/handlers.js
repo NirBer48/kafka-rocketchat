@@ -1,4 +1,10 @@
 import config from "./config.js";
+import { api } from "@rocket.chat/sdk";
+
+api.login({
+  username: config.rocketchat.user,
+  password: config.rocketchat.pass,
+});
 
 let wordsCount = new Map();
 
@@ -80,10 +86,12 @@ const getMostPopularWord = () => {
   )[0];
 };
 
+const tryCatchWrapper = async (func, params) => {
+  try {
+    await func(params);
+  } catch (err) {
+    console.log(err);
+  }
+};
 
-export {
-    handleMessageEdit,
-    handleMessageSent,
-    handleNewUser,
-    handleRoomName
-}
+export { handleMessageEdit, handleMessageSent, handleNewUser, handleRoomName, tryCatchWrapper };
